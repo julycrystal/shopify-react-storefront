@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChevronRight() {
+export const ChevronRight: React.FC = () => {
   return (
     <svg
       viewBox="0 0 320 512"
@@ -8,12 +8,6 @@ function ChevronRight() {
       width="12"
       height="12"
       fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      className="inline"
-      color="#2789E5"
     >
       <path
         fill="currentColor"
@@ -21,6 +15,4 @@ function ChevronRight() {
       ></path>
     </svg>
   );
-}
-
-export default ChevronRight;
+};
