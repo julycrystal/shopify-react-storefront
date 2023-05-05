@@ -3,6 +3,10 @@ module.exports = {
   content: ['./app/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {},
+    fontFamily: {
+      sans: ['Raleway', 'sans-serif'],
+      heading: ['Raleway', 'sans-serif'],
+    },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 };
