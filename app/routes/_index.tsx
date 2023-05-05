@@ -2,13 +2,14 @@ import {useLoaderData} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
 import {LoaderArgs, defer} from '@shopify/remix-oxygen';
 import {NewProductsCollectionQuery} from 'gql/graphql';
+import {FeaturedProducts} from '~/components/FeaturedProducts';
 import ProductStats from '~/components/ProductStats';
-import AlertCircle from '~/icons/AlertCircle';
+import { RocketCard } from '~/components/RocketCard';
 
 export function meta() {
   return [
     {title: 'Fancy Store'},
-    {description: 'A custom storefront powered by Hydrogen'},
+    {description: 'Beautiful Shopify Storefront'},
   ];
 }
 
@@ -33,22 +34,7 @@ export default function Index() {
         </div>
 
         <div className="flex flex-col-reverse flex-1 ml-24 rounded-[12px] bg-[#EDF6FF] bg-[url('/assets/rocketcard-bg.svg')]">
-          <div className="m-12">
-            <div>
-              <div className="text-neutral-800 text-center">
-                Brainstrom new descriptions or generate FAQs directly from the
-                app.
-              </div>
-            </div>
-            <div className="flex flex-col justify-center mt-12">
-              <a
-                href="/products"
-                className="text-2xl text-center text-white rounded-xl bg-[#2789E5] hover:pointer py-3 w-full"
-              >
-                View All Products
-              </a>
-            </div>
-          </div>
+          <RocketCard />
         </div>
       </div>
 
@@ -56,28 +42,7 @@ export default function Index() {
         <div>
           <h2>Recently updated products</h2>
         </div>
-        <div className="flex flex-row mt-12">
-          {products.nodes.map((product) => (
-            <div className="flex flex-row flex-1" key={product.id}>
-              <div className="flex-1">
-                <Image
-                  alt={product.featuredImage?.altText || product.title}
-                  src={product.featuredImage?.url || ''}
-                  width={60}
-                  height={60}
-                  className="rounded-xl shadow-xl"
-                />
-              </div>
-              <div className="flex flex-col flex-1 grow-[2]">
-                <div className="grow"></div>
-                <div className="align-middle">
-                  <AlertCircle />
-                  <h2 className="inline">{product.title}</h2>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <FeaturedProducts products={products.nodes} />
       </div>
     </div>
   );
