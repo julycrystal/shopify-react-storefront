@@ -32,7 +32,7 @@ export default function Index() {
           <ProductStats />
         </div>
 
-        <RocketCard className="" />
+        <RocketCard />
       </div>
 
       <div className="flex flex-col">

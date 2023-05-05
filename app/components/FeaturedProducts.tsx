@@ -1,7 +1,6 @@
 import React from 'react';
 import {NewProductsCollectionQuery} from 'gql/graphql';
 import {Image} from '@shopify/hydrogen';
-import AlertCircle from '~/icons/AlertCircle';
 import {ProductStatusIcon} from '~/icons/ProductStatusIcon';
 
 type FeaturedProductsProps = {
