@@ -1,4 +1,4 @@
-# Shopify Storefront With Fancy Styles
+# Shopify Storefront With Custom Styles
 
 ## Stacks used
 
