@@ -1,21 +1,21 @@
 import {useLoaderData} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
 import {LoaderArgs, defer} from '@shopify/remix-oxygen';
-import {NewProductsCollectionQuery} from 'gql/graphql';
+import {GraphDataQuery, NewProductsCollectionQuery} from 'gql/graphql';
+import {FeaturedProducts} from '~/components/FeaturedProducts';
 import ProductStats from '~/components/ProductStats';
-import AlertCircle from '~/icons/AlertCircle';
+import {RocketCard} from '~/components/RocketCard';
 
 export function meta() {
-  return [
-    {title: 'Fancy Store'},
-    {description: 'A custom storefront powered by Hydrogen'},
-  ];
+  return [{title: 'Storefront'}, {description: 'Beautiful Shopify Storefront'}];
 }
 
 export async function loader({context}: LoaderArgs) {
-  return await context.storefront.query<NewProductsCollectionQuery>(
-    NEW_PRODUCTS_QUERY,
-  );
+  const [products, graph] = await Promise.all([
+    context.storefront.query<NewProductsCollectionQuery>(NEW_PRODUCTS_QUERY),
+    context.storefront.query<GraphDataQuery>(GRAPH_DATA_QUERY),
+  ]);
+  return {products, graph};
 }
 
 export default function Index() {
@@ -27,57 +27,19 @@ export default function Index() {
         <h1>Dashboard</h1>
       </div>
 
-      <div className="flex min-h-[280px] my-12">
+      <div className="md:flex min-h-[280px] my-12">
         <div className="flex-1 grow-[2] border border-solid border-gray-200 rounded-xl shadow-xl p-8">
           <ProductStats />
         </div>
 
-        <div className="flex flex-col-reverse flex-1 ml-24 rounded-[12px] bg-[#EDF6FF] bg-[url('/assets/rocketcard-bg.svg')]">
-          <div className="m-12">
-            <div>
-              <div className="text-neutral-800 text-center">
-                Brainstrom new descriptions or generate FAQs directly from the
-                app.
-              </div>
-            </div>
-            <div className="flex flex-col justify-center mt-12">
-              <a
-                href="/products"
-                className="text-2xl text-center text-white rounded-xl bg-[#2789E5] hover:pointer py-3 w-full"
-              >
-                View All Products
-              </a>
-            </div>
-          </div>
-        </div>
+        <RocketCard />
       </div>
 
       <div className="flex flex-col">
         <div>
           <h2>Recently updated products</h2>
         </div>
-        <div className="flex flex-row mt-12">
-          {products.nodes.map((product) => (
-            <div className="flex flex-row flex-1" key={product.id}>
-              <div className="flex-1">
-                <Image
-                  alt={product.featuredImage?.altText || product.title}
-                  src={product.featuredImage?.url || ''}
-                  width={60}
-                  height={60}
-                  className="rounded-xl shadow-xl"
-                />
-              </div>
-              <div className="flex flex-col flex-1 grow-[2]">
-                <div className="grow"></div>
-                <div className="align-middle">
-                  <AlertCircle />
-                  <h2 className="inline">{product.title}</h2>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <FeaturedProducts products={products.products.nodes} />
       </div>
     </div>
   );
@@ -89,10 +51,21 @@ const NEW_PRODUCTS_QUERY = /* GraphQL */ `
       nodes {
         id
         title
+        tags
         featuredImage {
           altText
           url
         }
+      }
+    }
+  }
+`;
+
+const GRAPH_DATA_QUERY = /* GraphQL */ `
+  query GraphData {
+    productTags(first: 4) {
+      edges {
+        node
       }
     }
   }

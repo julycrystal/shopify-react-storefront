@@ -10,7 +10,7 @@ export function Layout({
 }: React.PropsWithChildren<LayoutProps>) {
   return (
     <div className="flex min-h-screen antialiased bg-neutral-50">
-      <main className="w-[960px] h-[540px] px-[60px] py-[30px] bg-white">
+      <main className="w-screen h-screen px-[60px] py-[30px] bg-white">
         {children}
       </main>
     </div>

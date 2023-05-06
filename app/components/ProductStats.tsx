@@ -25,6 +25,8 @@ export const options = {
       barWidth: 9,
     },
   },
+  maintainAspectRation: true,
+  responsive: true,
   scales: {
     x: {
       grid: {
@@ -39,7 +41,6 @@ export const options = {
       },
     },
   },
-  responsive: true,
   plugins: {
     legend: {
       display: false,
