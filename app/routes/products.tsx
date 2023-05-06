@@ -13,10 +13,7 @@ import {PaperPlane} from '../icons/PaperPlane';
 import {ProductStatusIcon} from '../icons/ProductStatusIcon';
 
 export function meta() {
-  return [
-    {title: 'Fancy Store'},
-    {description: 'A custom storefront powered by Hydrogen'},
-  ];
+  return [{title: 'Storefront'}, {description: 'Beautiful Shopify Storefront'}];
 }
 
 export async function loader({context}: LoaderArgs) {
