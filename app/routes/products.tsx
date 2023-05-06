@@ -2,14 +2,15 @@ import {useState} from 'react';
 import {useLoaderData} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
 import {LoaderArgs, defer} from '@shopify/remix-oxygen';
-import {ProductsCollectionQuery} from 'gql/graphql';
-import AlertCircle from '~/icons/AlertCircle';
-import ArrowLeft from '~/icons/ArrowLeft';
-import CheckmarkCircle from '~/icons/CheckmarkCircle';
-import ChevronLeft from '~/icons/ChevronLeft';
-import ChevronRight from '~/icons/ChevronRight';
-import FloppyDisk from '~/icons/FloppyDisk';
-import PaperPlane from '~/icons/PaperPlane';
+import {GraphDataQuery, ProductsCollectionQuery} from 'gql/graphql';
+import {AlertCircle} from '../icons/AlertCircle';
+import {ArrowLeft} from '../icons/ArrowLeft';
+import {CheckmarkCircle} from '../icons/CheckmarkCircle';
+import {ChevronLeft} from '../icons/ChevronLeft';
+import {ChevronRight} from '../icons/ChevronRight';
+import {FloppyDisk} from '../icons/FloppyDisk';
+import {PaperPlane} from '../icons/PaperPlane';
+import {ProductStatusIcon} from '../icons/ProductStatusIcon';
 
 export function meta() {
   return [
@@ -19,55 +20,75 @@ export function meta() {
 }
 
 export async function loader({context}: LoaderArgs) {
-  return await context.storefront.query<ProductsCollectionQuery>(
+  const products = await context.storefront.query<ProductsCollectionQuery>(
     NEW_PRODUCTS_QUERY,
   );
+  return {products};
 }
 
+type ArrayElement<ArrayType extends readonly unknown[]> =
+  ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
+type Product = ArrayElement<ProductsCollectionQuery['products']['nodes']>;
+
 export default function Index() {
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [formData, setFormData] = useState<Product>(null!);
   const {products} = useLoaderData<typeof loader>();
+
+  const [filter, setFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const onSetFilter = (newFilter: string) => {
+    if (filter === newFilter) setFilter('');
+    else setFilter(newFilter);
+    setPage(1);
+  };
+  const onShowUpdateForm = (product: Product) => {
+    setFormData(product);
+  };
+
+  const items = filter
+    ? products.products.nodes.filter((node) => node.tags[0] === filter)
+    : products.products.nodes;
+  const paginatedItems = items.slice(5 * (page - 1), 5 * page);
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row justify-between">
-        <div>
+      <div className="md:flex md:flex-row md:justify-between">
+        <div className="flex items-center">
           <a href="/">
             <ArrowLeft />
           </a>
-
-          <h1 className="inline">All Products</h1>
+          <h1 className="inline ml-4">All Products</h1>
         </div>
-        <div className="flex flex-row">
-          <div>
+
+        <div className="md:flex md:flex-row text-[#999999]">
+          <div className="flex items-center">
             <h2>Filter by:</h2>
           </div>
-          <div className="ml-4">
-            <AlertCircle />
-            <h2 className="inline">Not Started Yet</h2>
-          </div>
-          <div className="ml-4">
-            <CheckmarkCircle />
-            <h2 className="inline">Reviewed</h2>
-          </div>
-          <div className="ml-4">
-            <FloppyDisk />
-            <h2 className="inline">Saved For Later</h2>
-          </div>
-          <div className="ml-4">
-            <PaperPlane />
-            <h2 className="inline">Published</h2>
-          </div>
+          {['Not Started Yet', 'Reviewed', 'Saved For Later', 'Published'].map(
+            (tag) => (
+              <div
+                className="ml-4 flex items-center hover:cursor-pointer"
+                key={tag}
+                onClick={() => onSetFilter(tag)}
+              >
+                <ProductStatusIcon
+                  tag={tag}
+                  disabled={tag !== filter}
+                  withText={true}
+                />
+              </div>
+            ),
+          )}
         </div>
       </div>
 
-      <div className="flex min-h-[440px] my-12">
-        <div className="flex-1 min-x-[340px] rounded-xl">
-          {products.nodes.map((product) => (
+      <div className="md:flex min-h-[440px] my-12">
+        <div className="md:flex-1 min-x-[340px] rounded-xl">
+          {paginatedItems.map((product) => (
             <div
               className="flex flex-row flex-1 p-4 bg-transparent hover:bg-[#F2FBFB] border border-transparent hover:border hover:border-solid hover:border-gray-200 hover:shadow-sm rounded-2xl hover:cursor-pointer"
               key={product.id}
-              onClick={() => setShowUpdateForm(true)}
+              onClick={() => onShowUpdateForm(product)}
             >
               <div className="mr-4">
                 <Image
@@ -79,49 +100,59 @@ export default function Index() {
                 />
               </div>
               <div className="flex flex-col flex-1 grow-[2]">
-                <div>
-                  <PaperPlane />
+                <div className="flex items-center">
+                  <ProductStatusIcon tag={product.tags[0]} />
                   <h2 className="inline">{product.title}</h2>
                 </div>
                 <div>
-                  <h2 className="">{product.description}</h2>
+                  <h2 className="text-[#666666]">{product.description}</h2>
                   <div />
                 </div>
               </div>
             </div>
           ))}
 
-          <div className="flex flex-row justify-between">
-            <div className="flex text-gray-400">
+          <div className="flex flex-row justify-between mt-4">
+            <button
+              className="flex items-center hover:curser-pointer enabled:text-blue-400 disabled:text-gray-400"
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+            >
               <ChevronLeft />
               <p>Prev</p>
-            </div>
-            <p className="text-gray-400">Showing 5 of 16</p>
-            <div className="flex">
-              <p className="text-blue-400">Next</p>
+            </button>
+
+            <p className="text-gray-400">
+              Showing {paginatedItems.length} of {items.length}
+            </p>
+
+            <button
+              className="flex items-center hover:curser-pointer enabled:text-blue-400 disabled:text-gray-400"
+              onClick={() => setPage(page + 1)}
+              disabled={5 * page >= items.length}
+            >
+              <p>Next</p>
               <ChevronRight />
-            </div>
+            </button>
           </div>
         </div>
 
-        <div className="flex flex-col flex-1 rounded-2xl border-[2px] border-solid ml-24">
-          {showUpdateForm ? (
+        <div className="mt-12 md:mt-0 flex flex-col md:flex-1 rounded-2xl border-[2px] border-solid ml-0 md:ml-24">
+          {formData ? (
             <>
               <div className="flex flex-col justify-between min-h-[140px] bg-[#F2FBFB] rounded-t-2xl p-8">
                 <div>
                   <div className="flex justify-between">
                     <div>
-                      <h2>Kids Winter Beanie Hat</h2>
+                      <h2>{formData.title}</h2>
                     </div>
-                    <AlertCircle />
+                    <ProductStatusIcon tag={formData.tags[0]} />
                   </div>
-                  <p className="text-gray-500">
-                    Some dummy description about the product can be viewed here.
-                  </p>
+                  <p className="text-gray-500 mt-4">{formData.description}</p>
                 </div>
 
-                <div className="flex justify-between">
-                  <div>
+                <div className="flex flex-col md:flex-row md:justify-between mt-8">
+                  <div className="w-full md:w-auto">
                     <a
                       href="/products"
                       className="text-2xl text-center text-white rounded-xl bg-[#008080] hover:pointer py-4 px-8 w-full"
@@ -130,23 +161,24 @@ export default function Index() {
                     </a>
                   </div>
 
-                  <div>
+                  <div className="flex flex-col md:flex-row mt-8 md:mt-0 items-end">
                     <button className="underline text-md text-center text-blue hover:pointer text-blue-500">
                       Mark As Reviewed
                     </button>
-                    <button className="underline text-md text-center text-blue hover:pointer text-blue-500 ml-8">
+                    <button className="underline text-md text-center text-blue hover:pointer text-blue-500 mt-4 md:mt-0 md:ml-8">
                       Save For Later
                     </button>
                   </div>
                 </div>
               </div>
+
               <div className="min-h-[300px] bg-[#FAFAFA] rounded-b-2xl border-t-[1px] py-8 px-16">
-                <div className="flex justify-between">
+                <div className="flex flex-col md:flex-row justify-between">
                   <h2 className="text-2xl">Generated Results</h2>
                   <p className="text-gray-500">Showing 1 of 5 suggestions</p>
                 </div>
 
-                <div className="relative border border-blue-500 rounded-md p-12 mt-8 bg-white">
+                <div className="relative border border-blue-500 rounded-md p-12 my-8 bg-white">
                   <p className="text-gray-500">
                     <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white border border-gray-200 hover:shadow-md">
                       <div className="w-full h-full flex justify-center items-center">
@@ -168,9 +200,9 @@ export default function Index() {
                   </p>
                 </div>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center w-full">
                   <button
-                    className="text-2xl text-center text-white rounded-xl bg-[#CCCCCC] hover:cursor-not-allowed py-4 px-8 mt-8"
+                    className="text-2xl text-center text-white rounded-xl bg-[#CCCCCC] hover:cursor-not-allowed py-4 px-8"
                     disabled={true}
                   >
                     Update Product
@@ -197,11 +229,12 @@ export default function Index() {
 
 const NEW_PRODUCTS_QUERY = /* GraphQL */ `
   query ProductsCollection {
-    products(first: 5) {
+    products(first: 200) {
       nodes {
         id
         title
         description
+        tags
         featuredImage {
           altText
           url
