@@ -1,6 +1,6 @@
 # Shopify Storefront With Custom Styles
 
-## Stacks used
+## Technologies used
 
 ### For Shopify integration
 
